@@ -97,3 +97,6 @@ All services are deployed on [Zeabur](https://zeabur.com):
 | Database | MySQL |
 | Cache | Redis |
 | File Storage | Cloudflare R2 |
+
+
+[![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com/referral?referralCode=f312213213&utm_source=f312213213&utm_campaign=oss)
