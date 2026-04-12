@@ -14,7 +14,7 @@ NTPU Past Exam (北大考古題) — a platform for National Taipei University s
 ### Commands
 
 ```bash
-pnpm dev          # Start dev server (localhost:3000)
+pnpm dev          # Start dev server (localhost:5173)
 pnpm build        # Production build (standalone output)
 pnpm lint         # ESLint
 ```
@@ -112,7 +112,7 @@ GOOGLE_SERVICE_CLIENT_ID, GOOGLE_SERVICE_SERCET
 
 ### CORS Origins
 
-`past-exam.zeabur.app`, `past-exam.ntpu.cc`, `past-exam.ntpu.xyz`, `localhost:3000`, `localhost:8080`
+`past-exam.zeabur.app`, `past-exam.ntpu.cc`, `past-exam.ntpu.xyz`, `localhost:5173`, `localhost:8080`
 
 ## Code Quality
 

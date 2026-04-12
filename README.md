@@ -33,7 +33,7 @@ cd past-exam
 
 | Service | URL |
 |---------|-----|
-| Frontend | http://localhost:3000 |
+| Frontend | http://localhost:5173 |
 | Backend API | http://localhost:8080 |
 | MinIO Console (S3) | http://localhost:9001 |
 
