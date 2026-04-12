@@ -58,7 +58,7 @@ docker compose exec -T backend python scripts/seed.py
 echo ""
 echo "=== Done! ==="
 echo ""
-echo "  Frontend:      http://localhost:3000"
+echo "  Frontend:      http://localhost:5173"
 echo "  Backend API:   http://localhost:8080"
 echo "  MinIO Console: http://localhost:9001  (minioadmin / minioadmin)"
 echo ""

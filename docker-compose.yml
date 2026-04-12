@@ -48,6 +48,8 @@ services:
       mc alias set local http://minio:9000 minioadmin minioadmin;
       mc mb local/past-exam --ignore-existing;
       mc anonymous set download local/past-exam;
+      printf '{\"CORSRules\":[{\"AllowedHeaders\":[\"*\"],\"AllowedMethods\":[\"GET\",\"PUT\",\"POST\",\"DELETE\"],\"AllowedOrigins\":[\"http://localhost:5173\",\"http://localhost:3000\"],\"MaxAgeSeconds\":3000}]}' > /tmp/cors.json;
+      mc cors set local/past-exam /tmp/cors.json;
       exit 0;
       "
 
@@ -74,7 +76,7 @@ services:
       R2_BUCKET_NAME: past-exam
       R2_FILE_PATH: /uploads
       HASH_KEY: local-dev-secret-key-change-me
-      ORIGIN: http://localhost:3000
+      ORIGIN: http://localhost:5173
       GOOGLE_SERVICE_CLIENT_ID: placeholder
       GOOGLE_SERVICE_SERCET: placeholder
     depends_on:
@@ -90,7 +92,7 @@ services:
       context: ./ntpu-past-exam
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - "5173:5173"
     volumes:
       - ./ntpu-past-exam:/app
       - /app/node_modules
