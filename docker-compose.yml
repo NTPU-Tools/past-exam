@@ -37,19 +37,25 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   minio-init:
     image: minio/mc:latest
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      sleep 3;
       mc alias set local http://minio:9000 minioadmin minioadmin;
       mc mb local/past-exam --ignore-existing;
       mc anonymous set download local/past-exam;
-      printf '{\"CORSRules\":[{\"AllowedHeaders\":[\"*\"],\"AllowedMethods\":[\"GET\",\"PUT\",\"POST\",\"DELETE\"],\"AllowedOrigins\":[\"http://localhost:5173\",\"http://localhost:3000\"],\"MaxAgeSeconds\":3000}]}' > /tmp/cors.json;
-      mc cors set local/past-exam /tmp/cors.json;
+      mc admin config set local api cors_allow_origin='*';
+      mc service restart local;
+      sleep 5;
       exit 0;
       "
 
@@ -74,9 +80,9 @@ services:
       R2_ACCESS_KEY: minioadmin
       R2_ACCESS_TOKEN: minioadmin
       R2_BUCKET_NAME: past-exam
-      R2_FILE_PATH: /uploads
+      R2_FILE_PATH: http://${HOST_IP:-localhost}:9000/past-exam
       HASH_KEY: local-dev-secret-key-change-me
-      ORIGIN: http://localhost:5173
+      ORIGIN: http://${HOST_IP:-localhost}:5173
       GOOGLE_SERVICE_CLIENT_ID: placeholder
       GOOGLE_SERVICE_SERCET: placeholder
     depends_on:
@@ -97,8 +103,8 @@ services:
       - ./ntpu-past-exam:/app
       - /app/node_modules
     environment:
-      NEXT_PUBLIC_API_ORIGIN: http://localhost:8080
-      API_ORIGIN: http://backend:8080
+      NEXT_PUBLIC_API_ORIGIN: http://${HOST_IP:-localhost}:8080
+      API_ORIGIN: http://${HOST_IP:-localhost}:8080
       NEXT_PUBLIC_GOOGLE_LOGIN_CLIENT_ID: placeholder
     depends_on:
       - backend
