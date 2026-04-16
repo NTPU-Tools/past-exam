@@ -4,13 +4,13 @@ A platform for National Taipei University students to upload, share, and browse 
 
 ## Architecture
 
-| Component | Tech | Directory |
-|-----------|------|-----------|
-| Frontend | Next.js 14 (Pages Router), TypeScript, Tailwind, shadcn/ui | `ntpu-past-exam/` |
-| Backend | FastAPI, SQLAlchemy 2.0, Alembic | `ntpu-past-exam-service/` |
-| Database | MySQL 8.0 | — |
-| Cache | Redis 7 | — |
-| File Storage | Cloudflare R2 (MinIO locally) | — |
+| Component    | Tech                                                       | Directory                 |
+| ------------ | ---------------------------------------------------------- | ------------------------- |
+| Frontend     | Next.js 14 (Pages Router), TypeScript, Tailwind, shadcn/ui | `ntpu-past-exam/`         |
+| Backend      | FastAPI, SQLAlchemy 2.0, Alembic                           | `ntpu-past-exam-service/` |
+| Database     | MySQL 8.0                                                  | —                         |
+| Cache        | Redis 7                                                    | —                         |
+| File Storage | Cloudflare R2 (MinIO locally)                              | —                         |
 
 ## Local Development
 
@@ -31,21 +31,21 @@ cd past-exam
 
 ### Access
 
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8080 |
+| Service            | URL                   |
+| ------------------ | --------------------- |
+| Frontend           | http://localhost:5173 |
+| Backend API        | http://localhost:8080 |
 | MinIO Console (S3) | http://localhost:9001 |
 
 ### Test Accounts
 
 Log in using username/password mode (click 20 times on the login page to toggle the input fields).
 
-| User | Password | Role |
-|------|----------|------|
-| `admin` | `admin123` | Super user, admin of all departments |
-| `student1` | `password123` | Regular user, member of 資工系 |
-| `student2` | `password123` | Regular user, member of 電機系 |
+| User       | Password      | Role                                 |
+| ---------- | ------------- | ------------------------------------ |
+| `admin`    | `admin123`    | Super user, admin of all departments |
+| `student1` | `password123` | Regular user, member of 資工系       |
+| `student2` | `password123` | Regular user, member of 電機系       |
 
 ### Useful Commands
 
@@ -68,11 +68,39 @@ docker compose down -v && docker compose up -d
 docker compose exec backend python scripts/seed.py
 ```
 
+### Test On Phone/Tablet (Real Device)
+
+To test mobile-only behaviors (for example, PDF download side effects), run the stack with a LAN IP instead of localhost.
+
+```bash
+# Pick your Mac IP (example)
+export HOST_IP=192.168.1.23
+
+# Start/restart with HOST_IP applied
+docker compose down
+docker compose up -d --build
+```
+
+Then open `http://$HOST_IP:5173` on your phone/tablet (same Wi-Fi).
+
+- Frontend API origin becomes `http://$HOST_IP:8080`
+- Backend file URLs become `http://$HOST_IP:9000/past-exam/...`
+- CORS also allows `ORIGIN=http://$HOST_IP:5173`
+
+If you want default localhost behavior again, unset the variable and restart:
+
+```bash
+unset HOST_IP
+docker compose down
+docker compose up -d
+```
+
 ### Running Without Docker
 
 If you prefer running the apps natively (requires MySQL, Redis, and MinIO/S3 running separately):
 
 **Backend:**
+
 ```bash
 cd ntpu-past-exam-service
 poetry install
@@ -80,6 +108,7 @@ uvicorn main:app --reload --port 8080
 ```
 
 **Frontend:**
+
 ```bash
 cd ntpu-past-exam
 pnpm install
@@ -90,13 +119,12 @@ pnpm dev
 
 All services are deployed on [Zeabur](https://zeabur.com):
 
-| Component | Service |
-|-----------|---------|
-| Frontend | Next.js (standalone) |
-| Backend | FastAPI (Python) |
-| Database | MySQL |
-| Cache | Redis |
-| File Storage | Cloudflare R2 |
-
+| Component    | Service              |
+| ------------ | -------------------- |
+| Frontend     | Next.js (standalone) |
+| Backend      | FastAPI (Python)     |
+| Database     | MySQL                |
+| Cache        | Redis                |
+| File Storage | Cloudflare R2        |
 
 [![Deployed on Zeabur](https://zeabur.com/deployed-on-zeabur-dark.svg)](https://zeabur.com/referral?referralCode=f312213213&utm_source=f312213213&utm_campaign=oss)
