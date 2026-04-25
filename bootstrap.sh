@@ -40,11 +40,17 @@ echo ""
 
 # --- Start Docker services ---
 echo "Starting Docker services..."
-docker compose up --build -d
+if [ -z "$(docker compose images -q backend frontend 2>/dev/null)" ]; then
+  echo "Images not found — building for the first time..."
+  docker compose up --build -d
+else
+  echo "Images already exist — skipping build..."
+  docker compose up -d
+fi
 
 echo ""
 echo "Waiting for backend to be ready..."
-until docker compose exec -T backend python -c "from sql.database import SessionLocal; SessionLocal().close()" 2>/dev/null; do
+until curl -sf http://localhost:8080/ping > /dev/null 2>&1; do
   sleep 2
 done
 echo "Backend is ready."

@@ -29,6 +29,8 @@ cd past-exam
 ./bootstrap.sh
 ```
 
+`bootstrap.sh` only builds Docker images on the **first run**. Subsequent runs skip the build step and start existing images directly.
+
 ### Access
 
 | Service            | URL                   |
@@ -66,6 +68,15 @@ docker compose exec backend alembic upgrade head
 # Re-seed (wipe data first)
 docker compose down -v && docker compose up -d
 docker compose exec backend python scripts/seed.py
+
+# Rebuild images after Dockerfile or dependency changes (uses layer cache)
+docker compose build
+
+# Force a full rebuild from scratch
+docker compose build --no-cache
+
+# Destroy images and let bootstrap.sh rebuild on next run
+docker compose down --rmi local
 ```
 
 ### Test On Phone/Tablet (Real Device)

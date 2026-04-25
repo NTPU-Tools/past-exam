@@ -11,10 +11,10 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysql", "-h", "localhost", "-upast_exam_user", "-ppast_exam_password", "past_exam", "-e", "SELECT 1"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
 
   redis:
     image: redis:7-alpine
@@ -63,6 +63,7 @@ services:
     build:
       context: ./ntpu-past-exam-service
       dockerfile: Dockerfile.dev
+    restart: on-failure
     ports:
       - "8080:8080"
     volumes:
