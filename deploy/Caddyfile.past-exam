@@ -1,11 +1,28 @@
 past-exam.ntpu.cc {
     encode zstd gzip
-    reverse_proxy past-exam-frontend:8080
+
+    route /webhooks/source/github/events {
+        reverse_proxy coolify:8080
+    }
+
+    reverse_proxy past-exam-coolify-frontend:8080 past-exam-frontend-green:8080 {
+        lb_policy first
+        health_uri /healthz
+        health_interval 10s
+        fail_duration 30s
+        max_fails 1
+    }
 }
 
 past-exam-api.ntpu.cc {
     request_body {
         max_size 55MB
     }
-    reverse_proxy past-exam-api:8080
+    reverse_proxy past-exam-coolify-api:8080 past-exam-api-green:8080 {
+        lb_policy first
+        health_uri /ping
+        health_interval 10s
+        fail_duration 30s
+        max_fails 1
+    }
 }

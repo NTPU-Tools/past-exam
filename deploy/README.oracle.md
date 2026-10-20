@@ -135,6 +135,12 @@ Production now uses Coolify's GitHub App to deploy pushes to each repository's
 legacy systemd watcher disabled while Coolify automatic deployment is enabled;
 running both deployers can race and route traffic to different revisions.
 
+Caddy keeps the last verified `green` watcher containers as second-choice
+upstreams. It normally sends traffic to the Coolify aliases, but automatically
+falls back if a Coolify container disappears or becomes unhealthy during a
+failed rollout. Keep those fallback containers healthy until an equally tested
+replacement is available.
+
 The scripts below are retained only as a recovery path. If Coolify is
 deliberately disabled, the watcher can check once per minute and deploy only
 when either commit SHA changes.

@@ -43,13 +43,39 @@ temporary=$(mktemp "$state_dir/Caddyfile.XXXXXX")
 trap 'rm -f "$temporary"' EXIT
 
 cp -a "$caddy_file" "$backup"
-sed -E \
-  -e "s#reverse_proxy past-exam-(coolify-frontend|frontend(-(blue|green))?):8080#reverse_proxy ${frontend_upstream}:8080#" \
-  -e "s#reverse_proxy past-exam-(coolify-api|api(-(blue|green))?):8080#reverse_proxy ${backend_upstream}:8080#" \
-  "$caddy_file" > "$temporary"
+awk -v frontend="$frontend_upstream" -v backend="$backend_upstream" '
+  function replace_upstream(upstream, indentation, has_block) {
+    match($0, /^[[:space:]]*/)
+    indentation = substr($0, RSTART, RLENGTH)
+    has_block = $0 ~ /[[:space:]]\{[[:space:]]*$/
+    print indentation "reverse_proxy " upstream ":8080"
+    if (has_block) {
+      while ((getline) > 0) {
+        if ($0 ~ ("^" indentation "}[[:space:]]*$")) {
+          break
+        }
+      }
+    }
+  }
+
+  /^[[:space:]]*reverse_proxy past-exam-(coolify-frontend|frontend(-(blue|green))?):8080/ {
+    replace_upstream(frontend)
+    next
+  }
+  /^[[:space:]]*reverse_proxy past-exam-(coolify-api|api(-(blue|green))?):8080/ {
+    replace_upstream(backend)
+    next
+  }
+  { print }
+' "$caddy_file" > "$temporary"
 
 grep -Fq "reverse_proxy ${frontend_upstream}:8080" "$temporary"
 grep -Fq "reverse_proxy ${backend_upstream}:8080" "$temporary"
+
+if [[ "${PAST_EXAM_SWITCH_DRY_RUN:-0}" == 1 ]]; then
+  cat "$temporary"
+  exit 0
+fi
 
 # Persist the next configuration for container restarts. Load the same candidate
 # through /tmp because a single-file bind mount can keep an older host inode.
