@@ -1,8 +1,27 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$repo_root"
+
+for command_name in docker git curl; do
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "Missing required command: $command_name" >&2
+    exit 1
+  fi
+done
+
+if ! docker compose version >/dev/null 2>&1; then
+  echo "Docker Compose v2 is required (docker compose)." >&2
+  exit 1
+fi
 
 echo "=== NTPU Past Exam — Local Dev Bootstrap ==="
 echo ""
+
+backend_port="${BACKEND_PORT:-8080}"
+frontend_port="${FRONTEND_PORT:-5173}"
+s3_console_port="${S3_CONSOLE_PORT:-9001}"
 
 # --- Clone sub-repos if missing ---
 if [ ! -d "ntpu-past-exam" ]; then
@@ -40,19 +59,25 @@ echo ""
 
 # --- Start Docker services ---
 echo "Starting Docker services..."
-if [ -z "$(docker compose images -q backend frontend 2>/dev/null)" ]; then
-  echo "Images not found — building for the first time..."
-  docker compose up --build -d
-else
-  echo "Images already exist — skipping build..."
-  docker compose up -d
-fi
+docker compose config --quiet
+docker compose up --build -d
 
 echo ""
 echo "Waiting for backend to be ready..."
-until curl -sf http://localhost:8080/ping > /dev/null 2>&1; do
+backend_ready=false
+for ((attempt = 1; attempt <= 60; attempt++)); do
+  if curl -sf "http://localhost:${backend_port}/ping" > /dev/null 2>&1; then
+    backend_ready=true
+    break
+  fi
   sleep 2
 done
+
+if [[ "$backend_ready" != true ]]; then
+  echo "Backend did not become ready within 120 seconds." >&2
+  docker compose logs --tail=100 backend >&2
+  exit 1
+fi
 echo "Backend is ready."
 
 echo ""
@@ -64,11 +89,11 @@ docker compose exec -T backend python scripts/seed.py
 echo ""
 echo "=== Done! ==="
 echo ""
-echo "  Frontend:      http://localhost:5173"
-echo "  Backend API:   http://localhost:8080"
-echo "  MinIO Console: http://localhost:9001  (minioadmin / minioadmin)"
+echo "  Frontend:      http://localhost:${frontend_port}"
+echo "  Backend API:   http://localhost:${backend_port}"
+echo "  S3 Console:    http://localhost:${s3_console_port}  (minioadmin / minioadmin)"
 echo ""
-echo "  Login (click 20x on login page to toggle username/password mode):"
+echo "  Login (click 帳號密碼登入 on the login page):"
 echo "    admin    / admin123      (super user)"
 echo "    student1 / password123   (regular user)"
 echo "    student2 / password123   (regular user)"

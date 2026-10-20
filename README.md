@@ -6,11 +6,11 @@ A platform for National Taipei University students to upload, share, and browse 
 
 | Component    | Tech                                                       | Directory                 |
 | ------------ | ---------------------------------------------------------- | ------------------------- |
-| Frontend     | Next.js 14 (Pages Router), TypeScript, Tailwind, shadcn/ui | `ntpu-past-exam/`         |
+| Frontend     | Vite, React, TypeScript, Tailwind, shadcn/ui               | `ntpu-past-exam/`         |
 | Backend      | FastAPI, SQLAlchemy 2.0, Alembic                           | `ntpu-past-exam-service/` |
-| Database     | MySQL 8.0                                                  | —                         |
-| Cache        | Redis 7                                                    | —                         |
-| File Storage | Cloudflare R2 (MinIO locally)                              | —                         |
+| Database     | PostgreSQL 17                                              | —                         |
+| Cache / refresh sessions | Redis 7                                      | —                         |
+| File Storage | Cloudflare R2 (Silo S3-compatible storage locally)          | —                         |
 
 ## Local Development
 
@@ -29,7 +29,12 @@ cd past-exam
 ./bootstrap.sh
 ```
 
-`bootstrap.sh` only builds Docker images on the **first run**. Subsequent runs skip the build step and start existing images directly.
+`bootstrap.sh` rebuilds changed Docker layers and starts the full local stack. Docker's layer cache keeps unchanged rebuilds fast.
+
+Development ports bind to `127.0.0.1` by default so PostgreSQL, Redis, and S3
+are not exposed to the LAN. Ports and local credentials can be overridden with
+Compose environment variables such as `BACKEND_PORT`, `FRONTEND_PORT`,
+`POSTGRES_PASSWORD`, and `HASH_KEY`.
 
 ### Access
 
@@ -37,11 +42,12 @@ cd past-exam
 | ------------------ | --------------------- |
 | Frontend           | http://localhost:5173 |
 | Backend API        | http://localhost:8080 |
-| MinIO Console (S3) | http://localhost:9001 |
+| PostgreSQL         | localhost:5432        |
+| S3 Console         | http://localhost:9001 |
 
 ### Test Accounts
 
-Log in using username/password mode (click 20 times on the login page to toggle the input fields).
+Log in using username/password mode by clicking **帳號密碼登入** on the login page.
 
 | User       | Password      | Role                                 |
 | ---------- | ------------- | ------------------------------------ |
@@ -86,6 +92,7 @@ To test mobile-only behaviors (for example, PDF download side effects), run the 
 ```bash
 # Pick your Mac IP (example)
 export HOST_IP=192.168.1.23
+export BIND_ADDRESS=0.0.0.0
 
 # Start/restart with HOST_IP applied
 docker compose down
@@ -102,13 +109,14 @@ If you want default localhost behavior again, unset the variable and restart:
 
 ```bash
 unset HOST_IP
+unset BIND_ADDRESS
 docker compose down
 docker compose up -d
 ```
 
 ### Running Without Docker
 
-If you prefer running the apps natively (requires MySQL, Redis, and MinIO/S3 running separately):
+If you prefer running the apps natively (requires PostgreSQL 17, Redis, and S3-compatible storage running separately):
 
 **Backend:**
 
@@ -128,13 +136,20 @@ pnpm dev
 
 ## Deployment
 
-All services are deployed on [Zeabur](https://zeabur.com):
+Oracle self-hosting files are documented in `deploy/README.oracle.md` and use
+`docker-compose.oracle.yml`. The production stack keeps Cloudflare R2 and runs
+PostgreSQL and Redis on a private Docker network behind the existing Caddy.
+
+### Legacy Zeabur reference
+
+The table below describes the retired Zeabur/MySQL stack only. The current
+deployment uses the PostgreSQL-based Oracle stack documented above.
 
 | Component    | Service              |
 | ------------ | -------------------- |
 | Frontend     | Next.js (standalone) |
 | Backend      | FastAPI (Python)     |
-| Database     | MySQL                |
+| Database     | MySQL (legacy only)  |
 | Cache        | Redis                |
 | File Storage | Cloudflare R2        |
 

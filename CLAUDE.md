@@ -69,8 +69,8 @@ Uses **Poetry** for dependency management. `requirements.txt` is an export for d
 ### Tech Stack
 
 - **FastAPI** with async endpoints
-- **SQLAlchemy 2.0** ORM + **MySQL** + **Alembic** migrations
-- **Redis** caching via `fastapi-cache2` (pickle serialization)
+- **SQLAlchemy 2.0** ORM + **PostgreSQL 17** + **Alembic** migrations
+- **Redis** caching plus revocable refresh-session state
 - **Cloudflare R2** (S3-compatible) for file storage via boto3
 - **JWT** auth (HS256, python-jose) with access (1 day) / refresh (365 day) tokens
 - **Logtail** for logging (Better Stack)
