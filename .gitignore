@@ -10,5 +10,9 @@ oracle.env
 deploy/output.sql
 __pycache__/
 
+# Local agent and cloud CLI state (may contain machine-specific credentials)
+.aws/
+.opencode/
+
 # OS
 .DS_Store
